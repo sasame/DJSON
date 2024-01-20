@@ -354,20 +354,24 @@ public class DJSON
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <param name="list"></param>
-    static void deserializeDictionary(Type fieldType, Type type, object value, Dictionary<string,object> dic)
+    static void deserializeDictionary(Type fieldType, object value, Dictionary<string,object> dic)
     {
-        foreach (var pair in dic)
+        var valueType = fieldType.GetGenericArguments()[1];
+        if (valueType == typeof(string))
         {
-            if (type == typeof(string))
+            foreach (var pair in dic)
             {
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
             }
-            //            var inst = Activator.CreateInstance(type);
-
-            /*            if (item is Dictionary<string, object>)
-                        {
-                            deserializeObject(type, ref inst, item as Dictionary<string, object>);
-                        }*/
+        }else if (valueType.IsClass)
+        {
+            foreach (var pair in dic)
+            {
+                var inst = Activator.CreateInstance(valueType);
+                deserializeObject(valueType, ref inst, pair.Value as Dictionary<string,object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
+            }
+            //                f.SetValue(value, inst);
         }
     }
     /// <summary>
@@ -394,8 +398,7 @@ public class DJSON
             if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string,object>))
             {
                 var inst = Activator.CreateInstance(fieldType);
-                var typeItem = fieldType.GetGenericArguments()[0];
-                deserializeDictionary(fieldType, typeItem, inst, o as Dictionary<string,object>);
+                deserializeDictionary(fieldType, inst, o as Dictionary<string,object>);
                 f.SetValue(value, inst);
             }
             else if (fieldType == typeof(string))
@@ -479,6 +482,12 @@ public class DJSON
             var value = (T)Activator.CreateInstance(type);
             deserializeList(type, type, value, list);
             return value;
+        }
+        else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string, object>))
+        {
+            var inst = Activator.CreateInstance(type);
+            deserializeDictionary(type, inst, o as Dictionary<string, object>);
+            return (T)inst;
         }
         else
         {
