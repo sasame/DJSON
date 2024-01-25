@@ -350,10 +350,9 @@ public class DJSON
     /// <summary>
     /// ディクショナリをデシリアライズ
     /// </summary>
-    /// <param name="fieldType"></param>
-    /// <param name="type"></param>
-    /// <param name="value"></param>
-    /// <param name="list"></param>
+    /// <param name="fieldType">ディクショナリのタイプ</param>
+    /// <param name="value">ディクショナリ実体</param>
+    /// <param name="dic">オリジナルデータ</param>
     static void deserializeDictionary(Type fieldType, object value, Dictionary<string,object> dic)
     {
         var valueType = fieldType.GetGenericArguments()[1];
@@ -371,7 +370,14 @@ public class DJSON
                 deserializeObject(valueType, ref inst, pair.Value as Dictionary<string,object>);
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
             }
-            //                f.SetValue(value, inst);
+        }else if (isStruct(valueType))
+        {
+            foreach (var pair in dic)
+            {
+                var inst = Activator.CreateInstance(valueType);
+                deserializeObject(valueType, ref inst, pair.Value as Dictionary<string,object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
+            }
         }
     }
     /// <summary>
