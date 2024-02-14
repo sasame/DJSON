@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime;
+using System.Linq;
 using UnityEngine;
 
 public class DJSON
@@ -699,37 +700,73 @@ public class DJSON
         if (value == null) return null;
 
         Dictionary<string, object> dic = new Dictionary<string, object>();
-        var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-        foreach (var f in fields)
+        // ディクショナリ
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
         {
-            var fieldValue = f.GetValue(value);
-            var fieldType = f.FieldType;
-            if (isSupportValueType(fieldType))
+            Type keyType = type.GetGenericArguments()[0];
+            Type valueType = type.GetGenericArguments()[1];
+            if (keyType == typeof(string))
             {
-                dic[f.Name] = fieldValue;
-            }
-            else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                // list
-                var list = new List<object>();
-                var fieldList = fieldValue as IList;
-                foreach (var item in fieldList)
+                var items = type.GetProperty("Keys", BindingFlags.Instance | BindingFlags.Public).GetValue(value) as IEnumerable;
+                var values = type.GetProperty("Values", BindingFlags.Instance | BindingFlags.Public).GetValue(value) as ICollection;
+                object[] keys = items.OfType<object>().ToArray();
+                int indexKey = 0;
+                foreach(var v in values)
                 {
-                    list.Add(serializeObject(item.GetType(), item));
+                    var key = keys[indexKey] as string;
+                    if (isSupportValueType(valueType))
+                    {
+                        dic[key] = v;
+                    }
+                    else if (valueType.IsClass)
+                    {
+                        dic[key] = serializeObject(valueType, v);
+                    }
+                    else if (isStruct(valueType))
+                    {
+                        dic[key] = serializeObject(valueType, v);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.Log("ignore type:" + valueType);
+                    }
                 }
-                dic[f.Name] = list;
             }
-            else if (fieldType.IsClass)
+        }
+        else
+        {
+            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var f in fields)
             {
-                dic[f.Name] = serializeObject(fieldType, fieldValue);
-            }
-            else if (isStruct(fieldType))
-            {
-                dic[f.Name] = serializeObject(fieldType, fieldValue);
-            }
-            else
-            {
-                UnityEngine.Debug.Log("ignore type:" + fieldType);
+                var fieldValue = f.GetValue(value);
+                var fieldType = f.FieldType;
+                if (isSupportValueType(fieldType))
+                {
+                    dic[f.Name] = fieldValue;
+                }
+                else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    // list
+                    var list = new List<object>();
+                    var fieldList = fieldValue as IList;
+                    foreach (var item in fieldList)
+                    {
+                        list.Add(serializeObject(item.GetType(), item));
+                    }
+                    dic[f.Name] = list;
+                }
+                else if (fieldType.IsClass)
+                {
+                    dic[f.Name] = serializeObject(fieldType, fieldValue);
+                }
+                else if (isStruct(fieldType))
+                {
+                    dic[f.Name] = serializeObject(fieldType, fieldValue);
+                }
+                else
+                {
+                    UnityEngine.Debug.Log("ignore type:" + fieldType);
+                }
             }
         }
         return dic;
