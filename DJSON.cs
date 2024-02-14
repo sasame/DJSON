@@ -462,9 +462,20 @@ public class DJSON
             }
             else if (fieldType.IsClass)
             {
-                var inst = Activator.CreateInstance(fieldType);
-                deserializeObject(fieldType, ref inst, o as Dictionary<string, object>);
-                f.SetValue(value, inst);
+                if (fieldType.IsArray)
+                {
+                    var listType = Type.GetType("System.Collections.Generic.List`1[[" + fieldType.GetElementType().Name + ", Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]");
+                    var listInst = Activator.CreateInstance(listType);
+                    deserializeList(fieldType, fieldType.GetElementType(), listInst, o as List<object>);
+                    var inst = listType.InvokeMember("ToArray", BindingFlags.Public | BindingFlags.Instance,null,listInst,null);
+                    f.SetValue(value, inst);
+                }
+                else
+                {
+                    var inst = Activator.CreateInstance(fieldType);
+                    deserializeObject(fieldType, ref inst, o as Dictionary<string, object>);
+                    f.SetValue(value, inst);
+                }
             }
             else if (isStruct(fieldType))
             {
@@ -480,29 +491,37 @@ public class DJSON
     }
     public static T Deserialize<T>(string jsonString)
     {
-        var o = Parse(jsonString);
-        var type = typeof(T);
-        if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
+        try
         {
-            // デバッグ出来ていない
-            var list = o as List<object>;
-            var value = (T)Activator.CreateInstance(type);
-            deserializeList(type, type, value, list);
-            return value;
-        }
-        else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string, object>))
+            var o = Parse(jsonString);
+//            Debug.Log(jsonString);
+            var type = typeof(T);
+            if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
+            {
+                // デバッグ出来ていない
+                var list = o as List<object>;
+                var value = (T)Activator.CreateInstance(type);
+                deserializeList(type, type, value, list);
+                return value;
+            }
+            else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string, object>))
+            {
+                var inst = Activator.CreateInstance(type);
+                deserializeDictionary(type, inst, o as Dictionary<string, object>);
+                return (T)inst;
+            }
+            else
+            {
+                var value = (T)Activator.CreateInstance(type);
+                var inst = (object)value;
+                deserializeObject(type, ref inst, o as Dictionary<string, object>);
+                if (isStruct(type)) value = (T)inst;
+                return value;
+            }
+        }catch(Exception ex)
         {
-            var inst = Activator.CreateInstance(type);
-            deserializeDictionary(type, inst, o as Dictionary<string, object>);
-            return (T)inst;
-        }
-        else
-        {
-            var value = (T)Activator.CreateInstance(type);
-            var inst = (object)value;
-            deserializeObject(type, ref inst, o as Dictionary<string, object>);
-            if (isStruct(type)) value = (T)inst;
-            return value;
+            Debug.Log(ex.Message);
+            return default(T);
         }
     }
 
@@ -752,6 +771,25 @@ public class DJSON
                     foreach (var item in fieldList)
                     {
                         list.Add(serializeObject(item.GetType(), item));
+                    }
+                    dic[f.Name] = list;
+                }
+                else if (fieldType.IsArray)
+                {
+                    // array
+                    var list = new List<object>();
+                    var fieldList = fieldValue as Array;
+                    foreach (var item in fieldList)
+                    {
+                        if (item != null)
+                        {
+                            var arrayItem = serializeObject(item.GetType(), item);
+                            list.Add(arrayItem);
+                        }
+                        else
+                        {
+                            list.Add(null);
+                        }
                     }
                     dic[f.Name] = list;
                 }
