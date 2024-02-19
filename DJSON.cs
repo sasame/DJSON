@@ -339,12 +339,19 @@ public class DJSON
     {
         foreach (var item in list)
         {
-            var inst = Activator.CreateInstance(type);
-            fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
-
-            if (item is Dictionary<string, object>)
+            if (item == null)
             {
-                deserializeObject(type, ref inst, item as Dictionary<string, object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { null });
+            }
+            else
+            {
+                var inst = Activator.CreateInstance(type);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
+
+                if (item is Dictionary<string, object>)
+                {
+                    deserializeObject(type, ref inst, item as Dictionary<string, object>);
+                }
             }
         }
     }
@@ -402,7 +409,7 @@ public class DJSON
                 var typeItem = fieldType.GetGenericArguments()[0];
                 deserializeList(fieldType, typeItem, listInst, o as List<object>);
             }
-            if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string,object>))
+            else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string,object>))
             {
                 var inst = Activator.CreateInstance(fieldType);
                 deserializeDictionary(fieldType, inst, o as Dictionary<string,object>);
@@ -466,8 +473,8 @@ public class DJSON
                 {
                     var listType = Type.GetType("System.Collections.Generic.List`1[[" + fieldType.GetElementType().Name + ", Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]");
                     var listInst = Activator.CreateInstance(listType);
-                    deserializeList(fieldType, fieldType.GetElementType(), listInst, o as List<object>);
-                    var inst = listType.InvokeMember("ToArray", BindingFlags.Public | BindingFlags.Instance,null,listInst,null);
+                    deserializeList(listType, fieldType.GetElementType(), listInst, o as List<object>);
+                    var inst = listType.InvokeMember("ToArray", System.Reflection.BindingFlags.InvokeMethod, null,listInst,null);
                     f.SetValue(value, inst);
                 }
                 else
@@ -749,6 +756,7 @@ public class DJSON
                     {
                         UnityEngine.Debug.Log("ignore type:" + valueType);
                     }
+                    ++indexKey;
                 }
             }
         }
