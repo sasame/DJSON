@@ -405,9 +405,11 @@ public class DJSON
             var fieldType = f.FieldType;
             if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
             {
-                var listInst = f.GetValue(value);
+//                var listInst = f.GetValue(value);
+                var listInst = Activator.CreateInstance(fieldType);
                 var typeItem = fieldType.GetGenericArguments()[0];
                 deserializeList(fieldType, typeItem, listInst, o as List<object>);
+                f.SetValue(value,listInst);
             }
             else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string,object>))
             {
