@@ -370,6 +370,12 @@ public class DJSON
             {
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
             }
+        }else if (valueType == typeof(bool))
+        {
+            foreach (var pair in dic)
+            {
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
+            }
         }else if (valueType.IsClass)
         {
             foreach (var pair in dic)
