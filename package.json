@@ -1,0 +1,10 @@
+{
+  "name": "xyz.mosq.djson",
+  "displayName": "DJSON",
+  "version": "0.1.0",
+  "unity": "2020.1",
+  "description": "description.",
+  "author": {
+    "name": "DRFTERS"
+  }
+}
