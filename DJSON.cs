@@ -786,7 +786,18 @@ public class DJSON
                     var fieldList = fieldValue as IList;
                     foreach (var item in fieldList)
                     {
-                        list.Add(serializeObject(item.GetType(), item));
+                        if (item.GetType() == typeof(string))
+                        {
+                            list.Add(item);
+                        }
+                        else if (isStruct(fieldType))
+                        {
+                            dic[f.Name] = serializeObject(fieldType, fieldValue);
+                        }
+                        else if (item.GetType().IsClass)
+                        {
+                            list.Add(serializeObject(item.GetType(), item));
+                        }
                     }
                     dic[f.Name] = list;
                 }
