@@ -343,6 +343,62 @@ public class DJSON
             {
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { null });
             }
+            else if (type == typeof(string))
+            {
+                var inst = item as string;
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
+            }
+            else if (isSupportValueType(type))
+            {
+                if (type == typeof(int))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt32(item) });
+                }
+                else if (fieldType == typeof(uint))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt32(item) });
+                }
+                else if (fieldType == typeof(long))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt64(item) });
+                }
+                else if (fieldType == typeof(sbyte))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToSByte(item) });
+                }
+                else if (fieldType == typeof(byte))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToByte(item) });
+                }
+                else if (fieldType == typeof(short))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt16(item) });
+                }
+                else if (fieldType == typeof(ushort))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt16(item) });
+                }
+                else if (fieldType == typeof(ulong))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt64(item) });
+                }
+                else if (fieldType == typeof(float))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToSingle(item) });
+                }
+                else if (fieldType == typeof(double))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToDouble(item) });
+                }
+                else if (fieldType == typeof(decimal))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToDecimal(item) });
+                }
+                else if (fieldType == typeof(bool))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToBoolean(item) });
+                }
+            }
             else
             {
                 var inst = Activator.CreateInstance(type);
@@ -787,6 +843,10 @@ public class DJSON
                     foreach (var item in fieldList)
                     {
                         if (item.GetType() == typeof(string))
+                        {
+                            list.Add(item);
+                        }
+                        else if (isSupportValueType(item.GetType()))
                         {
                             list.Add(item);
                         }
