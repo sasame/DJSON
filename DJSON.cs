@@ -831,7 +831,11 @@ public class DJSON
             {
                 var fieldValue = f.GetValue(value);
                 var fieldType = f.FieldType;
-                if (isSupportValueType(fieldType))
+                if (fieldValue == null)
+                {
+                    dic[f.Name] = fieldValue;
+                }
+                else if (isSupportValueType(fieldType))
                 {
                     dic[f.Name] = fieldValue;
                 }
