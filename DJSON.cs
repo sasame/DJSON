@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
@@ -56,7 +56,7 @@ public class DJSON
             switch (curChar)
             {
                 case '{':
-                    // ˜A‘z”z—ñŠJn
+                    // é€£æƒ³é…åˆ—é–‹å§‹
                     {
                         Dictionary<string, object> dic = new Dictionary<string, object>();
                         AddObject(curObj, ref tmpName, dic);
@@ -64,7 +64,7 @@ public class DJSON
                     }
                     break;
                 case '}':
-                    // ˜A‘z”z—ñI—¹
+                    // é€£æƒ³é…åˆ—çµ‚äº†
                     {
                         if (lastObj is Dictionary<string, object>)
                         {
@@ -77,7 +77,7 @@ public class DJSON
                     }
                     break;
                 case '[':
-                    // ”z—ñŠJn
+                    // é…åˆ—é–‹å§‹
                     {
                         List<object> list = new List<object>();
                         AddObject(curObj, ref tmpName, list);
@@ -85,9 +85,9 @@ public class DJSON
                     }
                     break;
                 case ']':
-                    // ”z—ñI—¹
+                    // é…åˆ—çµ‚äº†
                     {
-                        // curObj.last == List<object>‚Æ‚¢‚¤ğŒ‚ª•K—v
+                        // curObj.last == List<object>ã¨ã„ã†æ¡ä»¶ãŒå¿…è¦
                         if (lastObj is List<object>)
                         {
                             curObj.RemoveAt(curObj.Count - 1);
@@ -101,12 +101,12 @@ public class DJSON
                 case ',':
                     break;
                 case '"':
-                    // •¶š—ñ
+                    // æ–‡å­—åˆ—
                     {
                         //                            UnityEngine.Debug.Log("STRING START:"+ cur);
                         ++cur;
 
-                        // •¶š—ñ‰‚ß‚©‚ç•¶š‚ğ“Ç‚İæ‚Á‚Ä‚¢‚­
+                        // æ–‡å­—åˆ—åˆã‚ã‹ã‚‰æ–‡å­—ã‚’èª­ã¿å–ã£ã¦ã„ã
                         StringBuilder builder = new StringBuilder();
                         do
                         {
@@ -116,7 +116,7 @@ public class DJSON
                             }
                             else if (jsonString[cur] == '\\')
                             {
-                                // ƒGƒXƒP[ƒv•¶š‚ğˆ—‚·‚é
+                                // ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—æ–‡å­—ã‚’å‡¦ç†ã™ã‚‹
                                 char nextChar = jsonString[cur + 1];
                                 switch (nextChar)
                                 {
@@ -158,7 +158,7 @@ public class DJSON
                             }
                         } while (cur < len);
 
-                        // string ‚Í‚Ç‚±‚Ì‚à‚Ì‚©
+                        // string ã¯ã©ã“ã®ã‚‚ã®ã‹
                         AddObject(curObj, ref tmpName, builder.ToString());
                     }
                     break;
@@ -176,7 +176,7 @@ public class DJSON
                 case '9':
                 case '-':
                     {
-                        // ”’l
+                        // æ•°å€¤
                         int start = cur;
                         bool hasPoint = false;
                         for (; cur < len; ++cur)
@@ -217,7 +217,7 @@ public class DJSON
                     break;
                 default:
                     {
-                        // ‚»‚Ì‘¼‚Ì•¶š—ñ
+                        // ãã®ä»–ã®æ–‡å­—åˆ—
                         int start = cur;
                         for (; cur < len; ++cur)
                         {
@@ -253,7 +253,7 @@ public class DJSON
                     break;
             }
 
-            // Å‰‚ÌƒIƒuƒWƒFƒNƒg‚ğ•Ô‚è’l‚É‚·‚é
+            // æœ€åˆã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è¿”ã‚Šå€¤ã«ã™ã‚‹
             if (firstObj == null)
             {
                 if (curObj.Count > 0)
@@ -274,14 +274,14 @@ public class DJSON
         }
         if (lastObj == null)
         {
-            // ’Pƒ‚É’l
+            // å˜ç´”ã«å€¤
             list.Add(val);
         }
         else if (tmpName == null)
         {
             if (lastObj is List<object>)
             {
-                // ”z—ñ‚É’Ç‰Á
+                // é…åˆ—ã«è¿½åŠ 
                 (lastObj as List<object>).Add(val);
             }
             else if (lastObj is Dictionary<string, object>)
@@ -296,14 +296,14 @@ public class DJSON
         {
             if (lastObj is Dictionary<string, object>)
             {
-                // ˜A‘z”z—ñ‚É’Ç‰Á
+                // é€£æƒ³é…åˆ—ã«è¿½åŠ 
                 (lastObj as Dictionary<string, object>).Add(tmpName, val);
                 tmpName = null;
             }
         }
     }
 
-    // ƒfƒVƒŠƒAƒ‰ƒCƒY ==============
+    // ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚º ==============
     static float getFloatValue(object o)
     {
         if (o is long)
@@ -329,7 +329,7 @@ public class DJSON
         throw new System.Exception("Error! getLongValue:" + o);
     }
     /// <summary>
-    /// ƒŠƒXƒg‚ğƒfƒVƒŠƒAƒ‰ƒCƒY
+    /// ãƒªã‚¹ãƒˆã‚’ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚º
     /// </summary>
     /// <param name="fieldType"></param>
     /// <param name="type"></param>
@@ -412,11 +412,11 @@ public class DJSON
         }
     }
     /// <summary>
-    /// ƒfƒBƒNƒVƒ‡ƒiƒŠ‚ğƒfƒVƒŠƒAƒ‰ƒCƒY
+    /// ãƒ‡ã‚£ã‚¯ã‚·ãƒ§ãƒŠãƒªã‚’ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚º
     /// </summary>
-    /// <param name="fieldType">ƒfƒBƒNƒVƒ‡ƒiƒŠ‚Ìƒ^ƒCƒv</param>
-    /// <param name="value">ƒfƒBƒNƒVƒ‡ƒiƒŠÀ‘Ì</param>
-    /// <param name="dic">ƒIƒŠƒWƒiƒ‹ƒf[ƒ^</param>
+    /// <param name="fieldType">ãƒ‡ã‚£ã‚¯ã‚·ãƒ§ãƒŠãƒªã®ã‚¿ã‚¤ãƒ—</param>
+    /// <param name="value">ãƒ‡ã‚£ã‚¯ã‚·ãƒ§ãƒŠãƒªå®Ÿä½“</param>
+    /// <param name="dic">ã‚ªãƒªã‚¸ãƒŠãƒ«ãƒ‡ãƒ¼ã‚¿</param>
     static void deserializeDictionary(Type fieldType, object value, Dictionary<string,object> dic)
     {
         var valueType = fieldType.GetGenericArguments()[1];
@@ -451,7 +451,7 @@ public class DJSON
         }
     }
     /// <summary>
-    /// ƒIƒuƒWƒFƒNƒg‚ğƒfƒVƒŠƒAƒ‰ƒCƒY
+    /// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚º
     /// </summary>
     /// <param name="type"></param>
     /// <param name="value"></param>
@@ -569,7 +569,7 @@ public class DJSON
             var type = typeof(T);
             if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
             {
-                // ƒfƒoƒbƒOo—ˆ‚Ä‚¢‚È‚¢
+                // ãƒ‡ãƒãƒƒã‚°å‡ºæ¥ã¦ã„ãªã„
                 var list = o as List<object>;
                 var value = (T)Activator.CreateInstance(type);
                 deserializeList(type, type, value, list);
@@ -759,7 +759,7 @@ public class DJSON
         }
     }
 
-    // ƒVƒŠƒAƒ‰ƒCƒYˆ— =====
+    // ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºå‡¦ç† =====
     static Type[] _supportValueTypes = new Type[]
     {
             typeof(int),
@@ -790,7 +790,7 @@ public class DJSON
         if (value == null) return null;
 
         Dictionary<string, object> dic = new Dictionary<string, object>();
-        // ƒfƒBƒNƒVƒ‡ƒiƒŠ
+        // ãƒ‡ã‚£ã‚¯ã‚·ãƒ§ãƒŠãƒª
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
         {
             Type keyType = type.GetGenericArguments()[0];
@@ -905,7 +905,7 @@ public class DJSON
     {
         Type type = typeof(T);
 
-        // objectƒ^ƒCƒv
+        // objectã‚¿ã‚¤ãƒ—
         var result = serializeObject(type, value);
         return ToJson(result);
     }
