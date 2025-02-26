@@ -354,47 +354,47 @@ public class DJSON
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt32(item) });
                 }
-                else if (fieldType == typeof(uint))
+                else if (type == typeof(uint))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt32(item) });
                 }
-                else if (fieldType == typeof(long))
+                else if (type == typeof(long))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt64(item) });
                 }
-                else if (fieldType == typeof(sbyte))
+                else if (type == typeof(sbyte))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToSByte(item) });
                 }
-                else if (fieldType == typeof(byte))
+                else if (type == typeof(byte))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToByte(item) });
                 }
-                else if (fieldType == typeof(short))
+                else if (type == typeof(short))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt16(item) });
                 }
-                else if (fieldType == typeof(ushort))
+                else if (type == typeof(ushort))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt16(item) });
                 }
-                else if (fieldType == typeof(ulong))
+                else if (type == typeof(ulong))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt64(item) });
                 }
-                else if (fieldType == typeof(float))
+                else if (type == typeof(float))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToSingle(item) });
                 }
-                else if (fieldType == typeof(double))
+                else if (type == typeof(double))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToDouble(item) });
                 }
-                else if (fieldType == typeof(decimal))
+                else if (type == typeof(decimal))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToDecimal(item) });
                 }
-                else if (fieldType == typeof(bool))
+                else if (type == typeof(bool))
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToBoolean(item) });
                 }
@@ -535,7 +535,8 @@ public class DJSON
             {
                 if (fieldType.IsArray)
                 {
-                    var listType = Type.GetType("System.Collections.Generic.List`1[[" + fieldType.GetElementType().Name + ", Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]");
+//                    var listType = Type.GetType("System.Collections.Generic.List`1[[" + fieldType.GetElementType().Name + ", Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]");
+                    var listType = Type.GetType("System.Collections.Generic.List`1[" + fieldType.GetElementType().FullName + "]");
                     var listInst = Activator.CreateInstance(listType);
                     deserializeList(listType, fieldType.GetElementType(), listInst, o as List<object>);
                     var inst = listType.InvokeMember("ToArray", System.Reflection.BindingFlags.InvokeMethod, null,listInst,null);
@@ -874,8 +875,15 @@ public class DJSON
                     {
                         if (item != null)
                         {
-                            var arrayItem = serializeObject(item.GetType(), item);
-                            list.Add(arrayItem);
+                            if (isSupportValueType(item.GetType()))
+                            {
+                                list.Add(item);
+                            }
+                            else
+                            {
+                                var arrayItem = serializeObject(item.GetType(), item);
+                                list.Add(arrayItem);
+                            }
                         }
                         else
                         {
