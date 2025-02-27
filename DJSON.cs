@@ -561,7 +561,7 @@ public class DJSON
             }
         }
     }
-    public static T Deserialize<T>(string jsonString)
+    public static T Deserialize<T>(string jsonString) where T : class
     {
         try
         {
@@ -581,6 +581,32 @@ public class DJSON
                 var inst = Activator.CreateInstance(type);
                 deserializeDictionary(type, inst, o as Dictionary<string, object>);
                 return (T)inst;
+            }
+            else if (type.IsArray && (o is List<object>))
+            {
+                var array = o as List<object>;
+                var value = (T)Activator.CreateInstance(type, array.Count);
+                var arrayValue = value as Array;
+//                var inst = (object)value;
+                var elemType = type.GetElementType();
+                for(int i=0;i<array.Count;++i)
+                {
+                    // if elemType
+                    if (isSupportValueType(elemType))
+                    {
+                        arrayValue.SetValue(array[i], i);
+                    }
+                    else
+                    {
+                        var inst = Activator.CreateInstance(elemType);
+                        deserializeObject(elemType, ref inst, array[i] as Dictionary<string, object>);
+                        arrayValue.SetValue(inst, i);
+                    }
+                }
+//                deserializeList(type, type, value, array);
+//                deserializeObject(type, ref inst, o as Dictionary<string, object>);
+//                if (isStruct(type)) value = (T)inst;
+                return value;
             }
             else
             {
@@ -786,6 +812,34 @@ public class DJSON
         return false;
     }
 
+    static List<object> serializeArray(object fieldValue)
+    {
+        // array
+        var list = new List<object>();
+        var fieldList = fieldValue as Array;
+        foreach (var item in fieldList)
+        {
+            if (item != null)
+            {
+                if (isSupportValueType(item.GetType()))
+                {
+                    list.Add(item);
+                }
+                else
+                {
+                    var arrayItem = serializeObject(item.GetType(), item);
+                    list.Add(arrayItem);
+                }
+            }
+            else
+            {
+                list.Add(null);
+            }
+        }
+        return list;
+//        dic[f.Name] = list;
+    }
+
     static Dictionary<string, object> serializeObject(Type type, object value)
     {
         if (value == null) return null;
@@ -869,28 +923,7 @@ public class DJSON
                 else if (fieldType.IsArray)
                 {
                     // array
-                    var list = new List<object>();
-                    var fieldList = fieldValue as Array;
-                    foreach (var item in fieldList)
-                    {
-                        if (item != null)
-                        {
-                            if (isSupportValueType(item.GetType()))
-                            {
-                                list.Add(item);
-                            }
-                            else
-                            {
-                                var arrayItem = serializeObject(item.GetType(), item);
-                                list.Add(arrayItem);
-                            }
-                        }
-                        else
-                        {
-                            list.Add(null);
-                        }
-                    }
-                    dic[f.Name] = list;
+                    dic[f.Name] = serializeArray(fieldValue);
                 }
                 else if (fieldType.IsClass)
                 {
@@ -913,8 +946,16 @@ public class DJSON
     {
         Type type = typeof(T);
 
-        // objectタイプ
-        var result = serializeObject(type, value);
-        return ToJson(result);
+        if (type.IsArray)
+        {
+            var result = serializeArray(value);
+            return ToJson(result);
+        }
+        else
+        {
+            // objectタイプ
+            var result = serializeObject(type, value);
+            return ToJson(result);
+        }
     }
 }
