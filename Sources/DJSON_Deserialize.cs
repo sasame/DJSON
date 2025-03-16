@@ -164,8 +164,22 @@ public partial class DJSON
                         colorSpace = sub.colorSpace,
                         mode = sub.mode,
                     });
+                }else if (fieldType == typeof(AnimationCurve))
+                {
+                    var sub = new subAnimationCurve();
+                    object subO = sub;
+                    deserializeObject(typeof(subAnimationCurve), ref subO, o as Dictionary<string, object>);
+                    var vkeys = new Keyframe[sub.keys.Length];
+                    for (int i = 0; i < sub.keys.Length; ++i) vkeys[i] = sub.keys[i].ToKeyframe();
+                    f.SetValue(value, new AnimationCurve()
+                    {
+                        keys = vkeys,
+                        preWrapMode = sub.preWrapMode,
+                        postWrapMode = sub.postWrapMode,
+                    });
                 }
-            }else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
+            }
+            else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
             {
                 //                var listInst = f.GetValue(value);
                 var listInst = Activator.CreateInstance(fieldType);

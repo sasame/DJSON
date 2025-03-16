@@ -162,6 +162,37 @@ public partial class DJSON
         public ColorSpace colorSpace;
         public GradientMode mode;
     };
+    struct subKeyframe
+    {
+        public float time;
+        public float value;
+        public float inTangent;
+        public float outTangent;
+        public float inWeight;
+        public float outWeight;
+        public WeightedMode weightedMode;
+
+        public subKeyframe(Keyframe k)
+        {
+            time = k.time;
+            value = k.value;
+            inTangent = k.inTangent;
+            outTangent = k.outTangent;
+            inWeight = k.inWeight;
+            outWeight = k.outWeight;
+            weightedMode = k.weightedMode;
+        }
+        public Keyframe ToKeyframe()
+        {
+            return new Keyframe(time, value, inTangent, outTangent, inWeight, outWeight);
+        }
+    }
+    class subAnimationCurve
+    {
+        public subKeyframe[] keys;
+        public WrapMode preWrapMode;
+        public WrapMode postWrapMode;
+    }
 
     /// <summary>
     /// 連想配列への変換
@@ -186,6 +217,18 @@ public partial class DJSON
                     mode = g.mode
                 };
                 return serializeClassOrStruct(valueG.GetType(), valueG);
+            }else if (type == typeof(AnimationCurve))
+            {
+                var a = value as AnimationCurve;
+                var aKeys = new subKeyframe[a.length];
+                for (int i = 0; i < a.length; ++i) aKeys[i] = new subKeyframe(a.keys[i]);
+                var valueA = new subAnimationCurve()
+                {
+                    keys = aKeys,
+                    preWrapMode = a.preWrapMode,
+                    postWrapMode = a.postWrapMode
+                };
+                return serializeClassOrStruct(valueA.GetType(), valueA);
             }
         }
         else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))

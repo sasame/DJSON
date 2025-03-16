@@ -495,6 +495,14 @@ public partial class DJSON
 
     static Type[] _supportUnitySpecialTypes = new Type[]
     {
+        // Vector2Int 
+        // Vector3Int  
+        // Bounds
+        // Plane 
+        // Ray
+        // Ray2D 
+        // Rect 
+        // RectInt 
         typeof(Gradient),
         typeof(AnimationCurve),
     };
