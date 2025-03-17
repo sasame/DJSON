@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
@@ -493,22 +493,5 @@ public partial class DJSON
         return false;*/
     }
 
-    static Type[] _supportUnitySpecialTypes = new Type[]
-    {
-        // Vector2Int 
-        // Vector3Int  
-        // Bounds
-        // Plane 
-        // Ray
-        // Ray2D 
-        // Rect 
-        // RectInt 
-        typeof(Gradient),
-        typeof(AnimationCurve),
-    };
-    static bool isSupportUnitySpecialType(Type type)
-    {
-        return _supportUnitySpecialTypes.Contains(type);
-    }
 
 }

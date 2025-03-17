@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -152,7 +152,8 @@ public partial class DJSON
             var fieldType = f.FieldType;
             if (isSupportUnitySpecialType(fieldType))
             {
-                if (fieldType == typeof(Gradient))
+                convertDeserialize(f, value, o as Dictionary<string, object>);
+/*                if (fieldType == typeof(Gradient))
                 {
                     var sub = new subGradient();
                     object subO = sub;
@@ -177,7 +178,7 @@ public partial class DJSON
                         preWrapMode = sub.preWrapMode,
                         postWrapMode = sub.postWrapMode,
                     });
-                }
+                }*/
             }
             else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
             {
