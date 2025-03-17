@@ -170,30 +170,6 @@ public partial class DJSON
             var conv = convertSerializable(type, value);
             if (conv == null) return null;
             return serializeClassOrStruct(conv.GetType(), conv);
-/*            if (type == typeof(Gradient))
-            {
-                var g = value as Gradient;
-                var valueG = new subGradient()
-                {
-                    colorKeys= g.colorKeys,
-                    alphaKeys=g.alphaKeys,
-                    colorSpace = g.colorSpace,
-                    mode = g.mode
-                };
-                return serializeClassOrStruct(valueG.GetType(), valueG);
-            }else if (type == typeof(AnimationCurve))
-            {
-                var a = value as AnimationCurve;
-                var aKeys = new subKeyframe[a.length];
-                for (int i = 0; i < a.length; ++i) aKeys[i] = new subKeyframe(a.keys[i]);
-                var valueA = new subAnimationCurve()
-                {
-                    keys = aKeys,
-                    preWrapMode = a.preWrapMode,
-                    postWrapMode = a.postWrapMode
-                };
-                return serializeClassOrStruct(valueA.GetType(), valueA);
-            }*/
         }
         else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
         {
