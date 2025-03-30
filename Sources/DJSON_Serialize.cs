@@ -80,6 +80,34 @@ public partial class DJSON
         return dic;
     }
 
+    static List<object> serializeList(Type fieldType,object fieldValue)
+    {
+        // list
+        var list = new List<object>();
+        var fieldList = fieldValue as IList;
+        foreach (var item in fieldList)
+        {
+            if (item.GetType() == typeof(string))
+            {
+                list.Add(item);
+            }
+            else if (isSupportValueType(item.GetType()))
+            {
+                list.Add(item);
+            }
+            else if (isStruct(fieldType))
+            {
+                list.Add(serializeObject(fieldType, fieldValue));
+            }
+            else if (item.GetType().IsClass)
+            {
+                list.Add(serializeObject(item.GetType(), item));
+            }
+        }
+        return list;
+//        dic[f.Name] = list;
+    }
+
     /// <summary>
     /// classやstructを連想配列に変換
     /// </summary>
@@ -107,7 +135,8 @@ public partial class DJSON
             else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 // list
-                var list = new List<object>();
+                dic[f.Name] = serializeList(fieldType, fieldValue);
+/*                var list = new List<object>();
                 var fieldList = fieldValue as IList;
                 foreach (var item in fieldList)
                 {
@@ -128,7 +157,7 @@ public partial class DJSON
                         list.Add(serializeObject(item.GetType(), item));
                     }
                 }
-                dic[f.Name] = list;
+                dic[f.Name] = list;*/
             }
             else if (fieldType.IsArray)
             {
@@ -192,6 +221,10 @@ public partial class DJSON
         {
             var result = serializeArray(value);
             return ToJson(result);
+        }
+        else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            return ToJson(serializeList(type,value));
         }
         else
         {
