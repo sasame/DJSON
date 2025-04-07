@@ -134,6 +134,61 @@ public partial class DJSON
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
             }
         }
+        else if (isSupportValueType(valueType))
+        {
+            foreach (var pair in dic)
+            {
+                if (valueType == typeof(int))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToInt32(pair.Value) });
+                }
+                else if (valueType == typeof(uint))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToUInt32(pair.Value) });
+                }
+                else if (valueType == typeof(long))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToInt64(pair.Value) });
+                }
+                else if (valueType == typeof(sbyte))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToSByte(pair.Value) });
+                }
+                else if (valueType == typeof(byte))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToByte(pair.Value) });
+                }
+                else if (valueType == typeof(short))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToInt16(pair.Value) });
+                }
+                else if (valueType == typeof(ushort))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToUInt16(pair.Value) });
+                }
+                else if (valueType == typeof(ulong))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToUInt64(pair.Value) });
+                }
+                else if (valueType == typeof(float))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToSingle(pair.Value) });
+                }
+                else if (valueType == typeof(double))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToDouble(pair.Value) });
+                }
+                else if (valueType == typeof(decimal))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToDecimal(pair.Value) });
+                }
+                else if (valueType == typeof(bool))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToBoolean(pair.Value) });
+                }
+            }
+        }
+
     }
     /// <summary>
     /// オブジェクトをデシリアライズ
@@ -153,32 +208,6 @@ public partial class DJSON
             if (isSupportUnitySpecialType(fieldType))
             {
                 convertDeserialize(f, value, o as Dictionary<string, object>);
-/*                if (fieldType == typeof(Gradient))
-                {
-                    var sub = new subGradient();
-                    object subO = sub;
-                    deserializeObject(typeof(subGradient),ref subO, o as Dictionary<string, object>);
-                    f.SetValue(value, new Gradient()
-                    {
-                        colorKeys = sub.colorKeys,
-                        alphaKeys = sub.alphaKeys,
-                        colorSpace = sub.colorSpace,
-                        mode = sub.mode,
-                    });
-                }else if (fieldType == typeof(AnimationCurve))
-                {
-                    var sub = new subAnimationCurve();
-                    object subO = sub;
-                    deserializeObject(typeof(subAnimationCurve), ref subO, o as Dictionary<string, object>);
-                    var vkeys = new Keyframe[sub.keys.Length];
-                    for (int i = 0; i < sub.keys.Length; ++i) vkeys[i] = sub.keys[i].ToKeyframe();
-                    f.SetValue(value, new AnimationCurve()
-                    {
-                        keys = vkeys,
-                        preWrapMode = sub.preWrapMode,
-                        postWrapMode = sub.postWrapMode,
-                    });
-                }*/
             }
             else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
             {
