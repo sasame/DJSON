@@ -2,7 +2,7 @@
   "name": "xyz.mosq.djson",
   "version": "0.1.0",
   "displayName": "DJSON",
-  "unity": "2022.3.39f1",
+  "unity": "2020.1",
   "description": "JSON serializer/deserializer for Unity.",
   "author": {
     "name": "DRFTERS",
