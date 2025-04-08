@@ -211,7 +211,7 @@ public partial class DJSON
     /// <param name="dic"></param>
     static void deserializeObject(Type type, ref object value, Dictionary<string, object> dic)
     {
-        var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        var fields = getSerializableFields(type);// type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         foreach (var f in fields)
         {
             if (dic.ContainsKey(f.Name) == false) continue;

@@ -10,6 +10,15 @@ using UnityEngine;
 /// </summary>
 public partial class DJSON
 {
+    static FieldInfo[] getSerializableFields(Type type)
+    {
+        return type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(field =>
+                field.IsPublic ||
+                field.GetCustomAttribute<SerializeField>() != null)
+            .ToArray();
+    }
+
     static List<object> serializeArray(object fieldValue)
     {
         // array
@@ -119,7 +128,7 @@ public partial class DJSON
         Dictionary<string, object> dic = new Dictionary<string, object>();
 
         // class or struct
-        var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        var fields = getSerializableFields(type);// type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         foreach (var f in fields)
         {
             var fieldValue = f.GetValue(value);
@@ -136,28 +145,6 @@ public partial class DJSON
             {
                 // list
                 dic[f.Name] = serializeList(fieldType, fieldValue);
-/*                var list = new List<object>();
-                var fieldList = fieldValue as IList;
-                foreach (var item in fieldList)
-                {
-                    if (item.GetType() == typeof(string))
-                    {
-                        list.Add(item);
-                    }
-                    else if (isSupportValueType(item.GetType()))
-                    {
-                        list.Add(item);
-                    }
-                    else if (isStruct(fieldType))
-                    {
-                        dic[f.Name] = serializeObject(fieldType, fieldValue);
-                    }
-                    else if (item.GetType().IsClass)
-                    {
-                        list.Add(serializeObject(item.GetType(), item));
-                    }
-                }
-                dic[f.Name] = list;*/
             }
             else if (fieldType.IsArray)
             {
