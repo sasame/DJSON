@@ -1,10 +1,12 @@
 {
   "name": "xyz.mosq.djson",
-  "displayName": "DJSON",
   "version": "0.1.0",
-  "unity": "2020.1",
-  "description": "description.",
+  "displayName": "DJSON",
+  "unity": "2022.3.39f1",
+  "description": "JSON serializer/deserializer for Unity.",
   "author": {
-    "name": "DRFTERS"
-  }
+    "name": "DRFTERS",
+    "url": "https://github.com/sasame"
+  },
+  "license":"MIT"
 }
