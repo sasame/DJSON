@@ -99,7 +99,6 @@ public partial class DJSON
     {
         public GradientColorKey[] colorKeys;
         public GradientAlphaKey[] alphaKeys;
-        public ColorSpace colorSpace;
         public GradientMode mode;
     };
     struct subKeyframe
@@ -253,7 +252,6 @@ public partial class DJSON
                 return new subGradient() {
                     colorKeys = v.colorKeys,
                     alphaKeys = v.alphaKeys,
-                    colorSpace = v.colorSpace,
                     mode = v.mode
                 };
             },
@@ -263,7 +261,6 @@ public partial class DJSON
                 {
                     colorKeys = v.colorKeys,
                     alphaKeys = v.alphaKeys,
-                    colorSpace = v.colorSpace,
                     mode = v.mode
                 };
             });
