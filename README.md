@@ -5,6 +5,14 @@ Dictionaryに対応してます！<BR>
 Unityの一般的な型に対応してます！<BR>
 （Vector2,Vector3,Quaternion,Matrix4x4,Vector2Int,Vector3Int,Bounds,Plane,Ray,Ray2D,Rect,RectInt,Gradient,AnimationCurveなど。他に対応が必要であればリクエストしてください）<BR>
 自作class,structなどの場合は、publicあるいは[SerializeField]部分を保存、復元します。<BR>
+## 🚀 特徴
+- ✅ Unityの一般的なデータ型に対応
+  - `Vector2`, `Vector3`, `Quaternion`, `Color`, `Rect`, などなど…
+- ✅ `Dictionary<TKey, TValue>` 対応（stringのキーだけでなく、int,byte,etcのキーにも対応）
+- ✅ `[SerializeField]` や `public` フィールドのみを自動シリアライズ
+- ✅ `Newtonsoft.Json` より軽量・Unity向けに最適化
+- ✅ ソースコードはシンプル＆MITライセンスで安心
+
 
 # インストール
 トップメニューの Window -> Package Manager を選びます。<BR>
