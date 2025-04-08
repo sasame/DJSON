@@ -143,3 +143,7 @@ public void TestJSON_Rect()
     Debug.Log(test.RectI + ":");
 }
 ```
+
+
+## License
+This project is licensed under the [MIT License](LICENSE).
