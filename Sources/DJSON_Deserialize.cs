@@ -82,6 +82,11 @@ public partial class DJSON
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToBoolean(item) });
                 }
             }
+            else if (isSupportUnitySpecialType(type))
+            {
+                var inst = convertDeserialize(type, value, item as Dictionary<string, object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
+            }
             else
             {
                 var inst = Activator.CreateInstance(type);
@@ -102,7 +107,15 @@ public partial class DJSON
     static void deserializeDictionary(Type fieldType, object value, Dictionary<string, object> dic)
     {
         var valueType = fieldType.GetGenericArguments()[1];
-        if (valueType == typeof(string))
+        if (isSupportUnitySpecialType(valueType))
+        {
+            foreach (var pair in dic)
+            {
+                var inst = convertDeserialize(valueType, value, pair.Value as Dictionary<string,object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
+            }
+        }
+        else if (valueType == typeof(string))
         {
             foreach (var pair in dic)
             {

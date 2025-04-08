@@ -325,4 +325,16 @@ public partial class DJSON
             f.SetValue(value, sub);
         }
     }
+    static object convertDeserialize(Type fieldType, object value, Dictionary<string, object> dic)
+    {
+        initSerializer();
+        if (_dicUnitySerializer.TryGetValue(fieldType, out var s))
+        {
+            var inst = Activator.CreateInstance(s.ReplaceType);
+            deserializeObject(s.ReplaceType, ref inst, dic);
+            var sub = s.Deserialize(inst);
+            return sub;
+        }
+        return null;
+    }
 }
