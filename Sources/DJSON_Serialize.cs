@@ -10,6 +10,11 @@ using UnityEngine;
 /// </summary>
 public partial class DJSON
 {
+    /// <summary>
+    /// public或いは、[SerializeField]のフィールドを取得
+    /// </summary>
+    /// <param name="type">タイプ</param>
+    /// <returns>フィールド配列</returns>
     static FieldInfo[] getSerializableFields(Type type)
     {
         return type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
@@ -19,6 +24,11 @@ public partial class DJSON
             .ToArray();
     }
 
+    /// <summary>
+    /// 配列をシリアライズ
+    /// </summary>
+    /// <param name="fieldValue">フィールドの値</param>
+    /// <returns>データリスト</returns>
     static List<object> serializeArray(object fieldValue)
     {
         // array
@@ -52,13 +62,14 @@ public partial class DJSON
     /// <param name="type">タイプ</param>
     /// <param name="value">値</param>
     /// <returns>連想配列</returns>
-    static Dictionary<string, object> serializeDictionary(Type type,object value)
+    static Dictionary<object, object> serializeDictionary(Type type,object value)
     {
-        Dictionary<string, object> dic = new Dictionary<string, object>();
+        Dictionary<object, object> dic = new Dictionary<object, object>();
         // ディクショナリ
         Type keyType = type.GetGenericArguments()[0];
         Type valueType = type.GetGenericArguments()[1];
-        if (keyType == typeof(string))
+//        if (keyType == typeof(string))
+        if (isSupportValueType(keyType))
         {
             var items = type.GetProperty("Keys", BindingFlags.Instance | BindingFlags.Public).GetValue(value) as IEnumerable;
             var values = type.GetProperty("Values", BindingFlags.Instance | BindingFlags.Public).GetValue(value) as ICollection;
@@ -66,7 +77,7 @@ public partial class DJSON
             int indexKey = 0;
             foreach (var v in values)
             {
-                var key = keys[indexKey] as string;
+                var key = keys[indexKey];// as string;
                 if (isSupportValueType(valueType))
                 {
                     dic[key] = v;
@@ -114,7 +125,6 @@ public partial class DJSON
             }
         }
         return list;
-//        dic[f.Name] = list;
     }
 
     /// <summary>
@@ -123,9 +133,9 @@ public partial class DJSON
     /// <param name="type">タイプ</param>
     /// <param name="value">値</param>
     /// <returns>連想配列</returns>
-    static Dictionary<string, object> serializeClassOrStruct(Type type,object value)
+    static Dictionary<object, object> serializeClassOrStruct(Type type,object value)
     {
-        Dictionary<string, object> dic = new Dictionary<string, object>();
+        Dictionary<object, object> dic = new Dictionary<object, object>();
 
         // class or struct
         var fields = getSerializableFields(type);// type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
@@ -177,7 +187,7 @@ public partial class DJSON
     /// <param name="type">タイプ</param>
     /// <param name="value">値</param>
     /// <returns>連想配列</returns>
-    static Dictionary<string, object> serializeObject(Type type, object value)
+    static Dictionary<object, object> serializeObject(Type type, object value)
     {
         if (value == null) return null;
 
@@ -200,24 +210,31 @@ public partial class DJSON
         return null;
     }
 
-    public static string Serialize<T>(T value)
+    /// <summary>
+    /// シリアライズ
+    /// </summary>
+    /// <typeparam name="T">データ型</typeparam>
+    /// <param name="value">値</param>
+    /// <param name="omitNullDictionaryValues">連想配列の値がnullのときは、保存しないフラグ</param>
+    /// <returns>JSON文字列</returns>
+    public static string Serialize<T>(T value,bool omitNullDictionaryValues = true)
     {
         Type type = typeof(T);
 
         if (type.IsArray)
         {
             var result = serializeArray(value);
-            return ToJson(result);
+            return ToJson(result, omitNullDictionaryValues);
         }
         else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
         {
-            return ToJson(serializeList(type,value));
+            return ToJson(serializeList(type,value), omitNullDictionaryValues);
         }
         else
         {
             // objectタイプ
             var result = serializeObject(type, value);
-            return ToJson(result);
+            return ToJson(result, omitNullDictionaryValues);
         }
     }
 }

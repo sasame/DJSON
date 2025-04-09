@@ -14,10 +14,10 @@ public partial class DJSON
     /// <summary>
     /// リストをデシリアライズ
     /// </summary>
-    /// <param name="fieldType"></param>
-    /// <param name="type"></param>
-    /// <param name="value"></param>
-    /// <param name="list"></param>
+    /// <param name="fieldType">リストのフィールドタイプ</param>
+    /// <param name="type">データタイプ</param>
+    /// <param name="value">リストオブジェクト</param>
+    /// <param name="list">データソースのリスト</param>
     static void deserializeList(Type fieldType, Type type, object value, List<object> list)
     {
         foreach (var item in list)
@@ -33,66 +33,19 @@ public partial class DJSON
             }
             else if (isSupportValueType(type))
             {
-                if (type == typeof(int))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt32(item) });
-                }
-                else if (type == typeof(uint))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt32(item) });
-                }
-                else if (type == typeof(long))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt64(item) });
-                }
-                else if (type == typeof(sbyte))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToSByte(item) });
-                }
-                else if (type == typeof(byte))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToByte(item) });
-                }
-                else if (type == typeof(short))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToInt16(item) });
-                }
-                else if (type == typeof(ushort))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt16(item) });
-                }
-                else if (type == typeof(ulong))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToUInt64(item) });
-                }
-                else if (type == typeof(float))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToSingle(item) });
-                }
-                else if (type == typeof(double))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToDouble(item) });
-                }
-                else if (type == typeof(decimal))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToDecimal(item) });
-                }
-                else if (type == typeof(bool))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ToBoolean(item) });
-                }
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ChangeType(item,type) });
             }
             else if (isSupportUnitySpecialType(type))
             {
-                var inst = convertDeserialize(type, value, item as Dictionary<string, object>);
+                var inst = convertDeserialize(type, value, item as Dictionary<object, object>);
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
             }
             else
             {
                 var inst = Activator.CreateInstance(type);
-                if (item is Dictionary<string, object>)
+                if (item is Dictionary<object, object>)
                 {
-                    deserializeObject(type, ref inst, item as Dictionary<string, object>);
+                    deserializeObject(type, ref inst, item as Dictionary<object, object>);
                 }
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
             }
@@ -104,14 +57,15 @@ public partial class DJSON
     /// <param name="fieldType">ディクショナリのタイプ</param>
     /// <param name="value">ディクショナリ実体</param>
     /// <param name="dic">オリジナルデータ</param>
-    static void deserializeDictionary(Type fieldType, object value, Dictionary<string, object> dic)
+    static void deserializeDictionary(Type fieldType, object value, Dictionary<object, object> dic)
     {
+        var keyType = fieldType.GetGenericArguments()[0];
         var valueType = fieldType.GetGenericArguments()[1];
         if (isSupportUnitySpecialType(valueType))
         {
             foreach (var pair in dic)
             {
-                var inst = convertDeserialize(valueType, value, pair.Value as Dictionary<string,object>);
+                var inst = convertDeserialize(valueType, value, pair.Value as Dictionary<object, object>);
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
             }
         }
@@ -119,14 +73,16 @@ public partial class DJSON
         {
             foreach (var pair in dic)
             {
-                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
+                var key = Convert.ChangeType(pair.Key, keyType);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, pair.Value });
             }
         }
         else if (valueType == typeof(bool))
         {
             foreach (var pair in dic)
             {
-                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
+                var key = Convert.ChangeType(pair.Key, keyType);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, pair.Value });
             }
         }
         else if (valueType.IsClass)
@@ -134,8 +90,9 @@ public partial class DJSON
             foreach (var pair in dic)
             {
                 var inst = Activator.CreateInstance(valueType);
-                deserializeObject(valueType, ref inst, pair.Value as Dictionary<string, object>);
-                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
+                deserializeObject(valueType, ref inst, pair.Value as Dictionary<object, object>);
+                var key = Convert.ChangeType(pair.Key, keyType);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, inst });
             }
         }
         else if (isStruct(valueType))
@@ -143,62 +100,17 @@ public partial class DJSON
             foreach (var pair in dic)
             {
                 var inst = Activator.CreateInstance(valueType);
-                deserializeObject(valueType, ref inst, pair.Value as Dictionary<string, object>);
-                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
+                deserializeObject(valueType, ref inst, pair.Value as Dictionary<object, object>);
+                var key = Convert.ChangeType(pair.Key, keyType);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, inst });
             }
         }
         else if (isSupportValueType(valueType))
         {
             foreach (var pair in dic)
             {
-                if (valueType == typeof(int))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToInt32(pair.Value) });
-                }
-                else if (valueType == typeof(uint))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToUInt32(pair.Value) });
-                }
-                else if (valueType == typeof(long))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToInt64(pair.Value) });
-                }
-                else if (valueType == typeof(sbyte))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToSByte(pair.Value) });
-                }
-                else if (valueType == typeof(byte))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToByte(pair.Value) });
-                }
-                else if (valueType == typeof(short))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToInt16(pair.Value) });
-                }
-                else if (valueType == typeof(ushort))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToUInt16(pair.Value) });
-                }
-                else if (valueType == typeof(ulong))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToUInt64(pair.Value) });
-                }
-                else if (valueType == typeof(float))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToSingle(pair.Value) });
-                }
-                else if (valueType == typeof(double))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToDouble(pair.Value) });
-                }
-                else if (valueType == typeof(decimal))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToDecimal(pair.Value) });
-                }
-                else if (valueType == typeof(bool))
-                {
-                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, Convert.ToBoolean(pair.Value) });
-                }
+                var key = Convert.ChangeType(pair.Key, keyType);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, Convert.ChangeType(pair.Value,valueType) });
             }
         }
 
@@ -206,10 +118,10 @@ public partial class DJSON
     /// <summary>
     /// オブジェクトをデシリアライズ
     /// </summary>
-    /// <param name="type"></param>
-    /// <param name="value"></param>
-    /// <param name="dic"></param>
-    static void deserializeObject(Type type, ref object value, Dictionary<string, object> dic)
+    /// <param name="type">オブジェクトのデータ型</param>
+    /// <param name="value">値</param>
+    /// <param name="dic">データソースのディクショナリ(連想配列)</param>
+    static void deserializeObject(Type type, ref object value, Dictionary<object, object> dic)
     {
         var fields = getSerializableFields(type);// type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         foreach (var f in fields)
@@ -220,7 +132,8 @@ public partial class DJSON
             var fieldType = f.FieldType;
             if (isSupportUnitySpecialType(fieldType))
             {
-                convertDeserialize(f, value, o as Dictionary<string, object>);
+                var ret = convertDeserialize(fieldType, value, o as Dictionary<object, object>);
+                f.SetValue(value,ret);
             }
             else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
             {
@@ -230,69 +143,20 @@ public partial class DJSON
                 deserializeList(fieldType, typeItem, listInst, o as List<object>);
                 f.SetValue(value, listInst);
             }
-            else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string, object>))
+            else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<object, object>))
             {
                 var inst = Activator.CreateInstance(fieldType);
-                deserializeDictionary(fieldType, inst, o as Dictionary<string, object>);
+                deserializeDictionary(fieldType, inst, o as Dictionary<object, object>);
                 f.SetValue(value, inst);
             }
-            else if (fieldType == typeof(string))
+            else if (isSupportValueType(fieldType))
             {
-                f.SetValue(value, o);
-            }
-            else if (fieldType == typeof(int))
-            {
-                f.SetValue(value, Convert.ToInt32(o));
-            }
-            else if (fieldType == typeof(uint))
-            {
-                f.SetValue(value, Convert.ToUInt32(o));
-            }
-            else if (fieldType == typeof(long))
-            {
-                f.SetValue(value, Convert.ToInt64(o));
-            }
-            else if (fieldType == typeof(sbyte))
-            {
-                f.SetValue(value, Convert.ToSByte(o));
-            }
-            else if (fieldType == typeof(byte))
-            {
-                f.SetValue(value, Convert.ToByte(o));
-            }
-            else if (fieldType == typeof(short))
-            {
-                f.SetValue(value, Convert.ToInt16(o));
-            }
-            else if (fieldType == typeof(ushort))
-            {
-                f.SetValue(value, Convert.ToUInt16(o));
-            }
-            else if (fieldType == typeof(ulong))
-            {
-                f.SetValue(value, Convert.ToUInt64(o));
-            }
-            else if (fieldType == typeof(float))
-            {
-                f.SetValue(value, Convert.ToSingle(o));
-            }
-            else if (fieldType == typeof(double))
-            {
-                f.SetValue(value, Convert.ToDouble(o));
-            }
-            else if (fieldType == typeof(decimal))
-            {
-                f.SetValue(value, Convert.ToDecimal(o));
-            }
-            else if (fieldType == typeof(bool))
-            {
-                f.SetValue(value, Convert.ToBoolean(o));
+                f.SetValue(value, Convert.ChangeType(o,fieldType));
             }
             else if (fieldType.IsClass)
             {
                 if (fieldType.IsArray)
                 {
-                    //                    var listType = Type.GetType("System.Collections.Generic.List`1[[" + fieldType.GetElementType().Name + ", Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]");
                     var listType = Type.GetType("System.Collections.Generic.List`1[[" + fieldType.GetElementType().AssemblyQualifiedName + "]]");
                     var listInst = Activator.CreateInstance(listType);
                     deserializeList(listType, fieldType.GetElementType(), listInst, o as List<object>);
@@ -302,14 +166,14 @@ public partial class DJSON
                 else
                 {
                     var inst = Activator.CreateInstance(fieldType);
-                    deserializeObject(fieldType, ref inst, o as Dictionary<string, object>);
+                    deserializeObject(fieldType, ref inst, o as Dictionary<object, object>);
                     f.SetValue(value, inst);
                 }
             }
             else if (isStruct(fieldType))
             {
                 var inst = f.GetValue(value);
-                deserializeObject(fieldType, ref inst, o as Dictionary<string, object>);
+                deserializeObject(fieldType, ref inst, o as Dictionary<object, object>);
                 f.SetValue(value, inst);
             }
             else if (fieldType.IsEnum)
@@ -332,60 +196,50 @@ public partial class DJSON
     /// <returns>T型の値</returns>
     public static T Deserialize<T>(string jsonString) where T : class
     {
-        try
+        var o = Parse(jsonString);
+        var type = typeof(T);
+        if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
         {
-            var o = Parse(jsonString);
-            //            Debug.Log(jsonString);
-            var type = typeof(T);
-            if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
-            {
-                // デバッグ出来ていない
-                var list = o as List<object>;
-                var value = (T)Activator.CreateInstance(type);
-                deserializeList(type, type, value, list);
-                return value;
-            }
-            else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<string, object>))
-            {
-                var inst = Activator.CreateInstance(type);
-                deserializeDictionary(type, inst, o as Dictionary<string, object>);
-                return (T)inst;
-            }
-            else if (type.IsArray && (o is List<object>))
-            {
-                var array = o as List<object>;
-                var value = (T)Activator.CreateInstance(type, array.Count);
-                var arrayValue = value as Array;
-                var elemType = type.GetElementType();
-                for (int i = 0; i < array.Count; ++i)
-                {
-                    // if elemType
-                    if (isSupportValueType(elemType))
-                    {
-                        arrayValue.SetValue(array[i], i);
-                    }
-                    else
-                    {
-                        var inst = Activator.CreateInstance(elemType);
-                        deserializeObject(elemType, ref inst, array[i] as Dictionary<string, object>);
-                        arrayValue.SetValue(inst, i);
-                    }
-                }
-                return value;
-            }
-            else
-            {
-                var value = (T)Activator.CreateInstance(type);
-                var inst = (object)value;
-                deserializeObject(type, ref inst, o as Dictionary<string, object>);
-                if (isStruct(type)) value = (T)inst;
-                return value;
-            }
+            var list = o as List<object>;
+            var value = (T)Activator.CreateInstance(type);
+            deserializeList(type, type, value, list);
+            return value;
         }
-        catch (Exception ex)
+        else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<object, object>))
         {
-            Debug.Log(ex.Message);
-            return default(T);
+            var inst = Activator.CreateInstance(type);
+            deserializeDictionary(type, inst, o as Dictionary<object, object>);
+            return (T)inst;
+        }
+        else if (type.IsArray && (o is List<object>))
+        {
+            var array = o as List<object>;
+            var value = (T)Activator.CreateInstance(type, array.Count);
+            var arrayValue = value as Array;
+            var elemType = type.GetElementType();
+            for (int i = 0; i < array.Count; ++i)
+            {
+                // if elemType
+                if (isSupportValueType(elemType))
+                {
+                    arrayValue.SetValue(array[i], i);
+                }
+                else
+                {
+                    var inst = Activator.CreateInstance(elemType);
+                    deserializeObject(elemType, ref inst, array[i] as Dictionary<object, object>);
+                    arrayValue.SetValue(inst, i);
+                }
+            }
+            return value;
+        }
+        else
+        {
+            var value = (T)Activator.CreateInstance(type);
+            var inst = (object)value;
+            deserializeObject(type, ref inst, o as Dictionary<object, object>);
+            if (isStruct(type)) value = (T)inst;
+            return value;
         }
     }
 }

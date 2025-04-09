@@ -11,7 +11,10 @@ using UnityEngine;
 /// </summary>
 public partial class DJSON
 {
-    class Serizlizer
+    /// <summary>
+    /// Unityの一部のデータ型のように通常シリアライズ不可能な型を別の型に相互変換する仕組みを提供する
+    /// </summary>
+    class Serializer
     {
         Type _replaceType;
         Func<object, object> _serialize;
@@ -21,7 +24,7 @@ public partial class DJSON
         public Func<object, object> Serialize => _serialize;
         public Func<object, object> Deserialize => _deserialize;
 
-        public Serizlizer(Type repType,Func<object,object> serialize, Func<object, object> deserialize)
+        public Serializer(Type repType,Func<object,object> serialize, Func<object, object> deserialize)
         {
             _replaceType = repType;
             _serialize = serialize;
@@ -134,14 +137,14 @@ public partial class DJSON
     }
 #pragma warning restore 0649
 
-    static Dictionary<Type, Serizlizer> _dicUnitySerializer = null;
+    static Dictionary<Type, Serializer> _dicUnitySerializer = null;
     static void initSerializer()
     {
         if (_dicUnitySerializer != null) return;
 
-        _dicUnitySerializer = new Dictionary<Type, Serizlizer>();
+        _dicUnitySerializer = new Dictionary<Type, Serializer>();
         // Vector2Int
-        _dicUnitySerializer[typeof(Vector2Int)] = new Serizlizer(typeof(subVector2Int),
+        _dicUnitySerializer[typeof(Vector2Int)] = new Serializer(typeof(subVector2Int),
             (o) => {
                 var v = (Vector2Int)o;
                 return new subVector2Int() { x = v.x, y = v.y };
@@ -155,7 +158,7 @@ public partial class DJSON
                 };
             });
         // Vector3Int
-        _dicUnitySerializer[typeof(Vector3Int)] = new Serizlizer(typeof(subVector3Int),
+        _dicUnitySerializer[typeof(Vector3Int)] = new Serializer(typeof(subVector3Int),
             (o) => {
                 var v = (Vector3Int)o;
                 return new subVector3Int() { x = v.x, y = v.y, z = v.z };
@@ -170,7 +173,7 @@ public partial class DJSON
                 };
             });
         // Bounds
-        _dicUnitySerializer[typeof(Bounds)] = new Serizlizer(typeof(subBounds),
+        _dicUnitySerializer[typeof(Bounds)] = new Serializer(typeof(subBounds),
             (o) => {
                 var v = (Bounds)o;
                 return new subBounds() { center = v.center, size = v.size };
@@ -184,7 +187,7 @@ public partial class DJSON
                 };
             });
         // Plane
-        _dicUnitySerializer[typeof(Plane)] = new Serizlizer(typeof(subPlane),
+        _dicUnitySerializer[typeof(Plane)] = new Serializer(typeof(subPlane),
             (o) => {
                 var v = (Plane)o;
                 return new subPlane() { normal = v.normal, distance = v.distance };
@@ -198,7 +201,7 @@ public partial class DJSON
                 };
             });
         // Ray
-        _dicUnitySerializer[typeof(Ray)] = new Serizlizer(typeof(subRay),
+        _dicUnitySerializer[typeof(Ray)] = new Serializer(typeof(subRay),
             (o) => {
                 var v = (Ray)o;
                 return new subRay() { origin = v.origin, direction = v.direction };
@@ -212,7 +215,7 @@ public partial class DJSON
                 };
             });
         // Ray2D
-        _dicUnitySerializer[typeof(Ray2D)] = new Serizlizer(typeof(subRay2D),
+        _dicUnitySerializer[typeof(Ray2D)] = new Serializer(typeof(subRay2D),
             (o) => {
                 var v = (Ray2D)o;
                 return new subRay2D() { origin = v.origin, direction = v.direction };
@@ -226,7 +229,7 @@ public partial class DJSON
                 };
             });
         // Rect
-        _dicUnitySerializer[typeof(Rect)] = new Serizlizer(typeof(subRect),
+        _dicUnitySerializer[typeof(Rect)] = new Serializer(typeof(subRect),
             (o) => {
                 var v = (Rect)o;
                 return new subRect() { xMin = v.xMin, yMin = v.yMin, width = v.width, height = v.height };
@@ -236,7 +239,7 @@ public partial class DJSON
                 return new Rect(v.xMin, v.yMin, v.width, v.height);
             });
         // RectInt
-        _dicUnitySerializer[typeof(RectInt)] = new Serizlizer(typeof(subRectInt),
+        _dicUnitySerializer[typeof(RectInt)] = new Serializer(typeof(subRectInt),
             (o) => {
                 var v = (RectInt)o;
                 return new subRectInt() { xMin = v.xMin, yMin = v.yMin, width = v.width, height = v.height };
@@ -246,7 +249,7 @@ public partial class DJSON
                 return new RectInt(v.xMin, v.yMin, v.width, v.height);
             });
         // Gradient
-        _dicUnitySerializer[typeof(Gradient)] = new Serizlizer(typeof(subGradient),
+        _dicUnitySerializer[typeof(Gradient)] = new Serializer(typeof(subGradient),
             (o) => {
                 var v = (Gradient)o;
                 return new subGradient() {
@@ -265,7 +268,7 @@ public partial class DJSON
                 };
             });
         // AnimationCurve
-        _dicUnitySerializer[typeof(AnimationCurve)] = new Serizlizer(typeof(subAnimationCurve),
+        _dicUnitySerializer[typeof(AnimationCurve)] = new Serializer(typeof(subAnimationCurve),
             (o) => {
                 var v = (AnimationCurve)o;
                 var aKeys = new subKeyframe[v.length];
@@ -289,10 +292,19 @@ public partial class DJSON
                 };
             });
     }
+
+    /// <summary>
+    /// サポート型が足りない場合に、追加する関数
+    /// シリアライズ可能な型に相互変換するための関数を指定します
+    /// </summary>
+    /// <param name="type">対応する型（通常シリアライズ不可能な型）</param>
+    /// <param name="replaceType">置き換える型（シリアライズ可能な型）</param>
+    /// <param name="serialize">type型のデータをreplaceType型に変換する関数</param>
+    /// <param name="deserizlize">replaceType型のデータをtype型に変換する関数</param>
     static void AppendSerializer(Type type,Type replaceType,Func<object,object> serialize,Func<object,object> deserizlize)
     {
         initSerializer();
-        _dicUnitySerializer[type] = new Serizlizer(replaceType, serialize, deserizlize);
+        _dicUnitySerializer[type] = new Serializer(replaceType, serialize, deserizlize);
     }
 
     // Unityのシリアライズ不可能な型を、シリアライズ可能な型に変換
@@ -309,20 +321,7 @@ public partial class DJSON
 
 
     // Unityのシリアライズ不可能な型を、シリアライズ可能な型に変換しつつデシリアライズ
-    static void convertDeserialize(FieldInfo f,object value, Dictionary<string, object> dic)
-    {
-        var fieldType = f.FieldType;
-
-        initSerializer();
-        if (_dicUnitySerializer.TryGetValue(fieldType, out var s))
-        {
-            var inst = Activator.CreateInstance(s.ReplaceType);
-            deserializeObject(s.ReplaceType, ref inst, dic);
-            var sub = s.Deserialize(inst);
-            f.SetValue(value, sub);
-        }
-    }
-    static object convertDeserialize(Type fieldType, object value, Dictionary<string, object> dic)
+    static object convertDeserialize(Type fieldType, object value, Dictionary<object, object> dic)
     {
         initSerializer();
         if (_dicUnitySerializer.TryGetValue(fieldType, out var s))

@@ -40,7 +40,7 @@ public partial class DJSON
     {
         List<object> curObj = new List<object>();
         int len = jsonString.Length;
-        string tmpName = null;
+        object tmpName = null;
         object firstObj = null;
         for (int cur = 0; cur < len; ++cur)
         {
@@ -59,7 +59,7 @@ public partial class DJSON
                 case '{':
                     // 連想配列開始
                     {
-                        Dictionary<string, object> dic = new Dictionary<string, object>();
+                        Dictionary<object, object> dic = new Dictionary<object, object>();
                         AddObject(curObj, ref tmpName, dic);
                         curObj.Add(dic);
                     }
@@ -67,7 +67,7 @@ public partial class DJSON
                 case '}':
                     // 連想配列終了
                     {
-                        if (lastObj is Dictionary<string, object>)
+                        if (lastObj is Dictionary<object, object>)
                         {
                             curObj.RemoveAt(curObj.Count - 1);
                         }
@@ -266,7 +266,7 @@ public partial class DJSON
         return firstObj;
     }
 
-    static void AddObject(List<object> list, ref string tmpName, object val)
+    static void AddObject(List<object> list, ref object tmpName, object val)
     {
         object lastObj = null;
         if (list.Count > 0)
@@ -285,20 +285,17 @@ public partial class DJSON
                 // 配列に追加
                 (lastObj as List<object>).Add(val);
             }
-            else if (lastObj is Dictionary<string, object>)
+            else if (lastObj is Dictionary<object, object>)
             {
-                if (val is string)
-                {
-                    tmpName = (val as string);
-                }
+                tmpName = val;
             }
         }
         else
         {
-            if (lastObj is Dictionary<string, object>)
+            if (lastObj is Dictionary<object, object>)
             {
                 // 連想配列に追加
-                (lastObj as Dictionary<string, object>).Add(tmpName, val);
+                (lastObj as Dictionary<object, object>).Add(tmpName, val);
                 tmpName = null;
             }
         }
@@ -319,15 +316,15 @@ public partial class DJSON
             _convertTable['\t'] = "\\t";
         }
     }
-    public static string ToJson(object o, bool formated = false)
+    public static string ToJson(object o, bool omitNullDictionaryValues=true)
     {
         MakeConvertTable();
         StringBuilder builder = new StringBuilder();
-        AppendValue(builder, o, "", formated);
+        AppendValue(builder, o, "", false, omitNullDictionaryValues);
         return builder.ToString();
     }
 
-    static void AppendValue(StringBuilder b, object o, string tab, bool formated)
+    static void AppendValue(StringBuilder b, object o, string tab, bool formated, bool omitNullDictionaryValues)
     {
         if (o == null)
         {
@@ -343,11 +340,11 @@ public partial class DJSON
         }
         else if (o is IList)
         {
-            AppendList(b, o as IList, tab, formated);
+            AppendList(b, o as IList, tab, formated, omitNullDictionaryValues);
         }
         else if (o is IDictionary)
         {
-            AppendDictionary(b, o as IDictionary, tab, formated);
+            AppendDictionary(b, o as IDictionary, tab, formated, omitNullDictionaryValues);
         }
         else if (o is float)
         {
@@ -411,7 +408,7 @@ public partial class DJSON
         }
         b.Append('\"');
     }
-    static void AppendList(StringBuilder b, IList list, string tab, bool formated)
+    static void AppendList(StringBuilder b, IList list, string tab, bool formated,bool omitNullDictionaryValues)
     {
         if (formated)
         {
@@ -429,7 +426,7 @@ public partial class DJSON
             {
                 b.Append(',');
             }
-            AppendValue(b, o, tab + "  ", formated);
+            AppendValue(b, o, tab + "  ", formated, omitNullDictionaryValues);
         }
         b.Append(']');
         if (formated)
@@ -437,7 +434,7 @@ public partial class DJSON
             b.Append(System.Environment.NewLine);
         }
     }
-    static void AppendDictionary(StringBuilder b, IDictionary dic, string tab, bool formated)
+    static void AppendDictionary(StringBuilder b, IDictionary dic, string tab, bool formated,bool omitNullDictionaryValues)
     {
         if (formated)
         {
@@ -447,6 +444,7 @@ public partial class DJSON
         bool isFirst = true;
         foreach (object o in dic.Keys)
         {
+            if (omitNullDictionaryValues && (dic[o] == null)) continue;
             if (isFirst)
             {
                 isFirst = false;
@@ -455,9 +453,9 @@ public partial class DJSON
             {
                 b.Append(',');
             }
-            AppendValue(b, o, tab, formated);
+            AppendValue(b, o, tab, formated, omitNullDictionaryValues);
             b.Append(':');
-            AppendValue(b, dic[o], tab, formated);
+            AppendValue(b, dic[o], tab, formated, omitNullDictionaryValues);
         }
         b.Append('}');
         if (formated)
@@ -469,28 +467,23 @@ public partial class DJSON
     // シリアライズ処理 =====
     static Type[] _supportValueTypes = new Type[]
     {
-            typeof(int),
-            typeof(uint),
-            typeof(long),
-            typeof(sbyte),
-            typeof(byte),
-            typeof(short),
-            typeof(ushort),
-            typeof(ulong),
-            typeof(float),
-            typeof(double),
-            typeof(decimal),
-            typeof(bool),
-            typeof(string),
+        typeof(int),
+        typeof(uint),
+        typeof(long),
+        typeof(sbyte),
+        typeof(byte),
+        typeof(short),
+        typeof(ushort),
+        typeof(ulong),
+        typeof(float),
+        typeof(double),
+        typeof(decimal),
+        typeof(bool),
+        typeof(string),
     };
     static bool isSupportValueType(Type type)
     {
         return _supportValueTypes.Contains(type);
-/*        foreach (var t in _supportValueTypes)
-        {
-            if (t == type) return true;
-        }
-        return false;*/
     }
 
 
