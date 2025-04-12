@@ -321,7 +321,7 @@ public partial class DJSON
 
 
     // Unityのシリアライズ不可能な型を、シリアライズ可能な型に変換しつつデシリアライズ
-    static object convertDeserialize(Type fieldType, object value, Dictionary<object, object> dic)
+    static object convertDeserialize(Type fieldType, Dictionary<object, object> dic)
     {
         initSerializer();
         if (_dicUnitySerializer.TryGetValue(fieldType, out var s))

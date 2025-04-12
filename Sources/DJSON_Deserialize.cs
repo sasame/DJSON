@@ -37,7 +37,7 @@ public partial class DJSON
             }
             else if (isSupportUnitySpecialType(type))
             {
-                var inst = convertDeserialize(type, value, item as Dictionary<object, object>);
+                var inst = convertDeserialize(type, item as Dictionary<object, object>);
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
             }
             else
@@ -65,7 +65,7 @@ public partial class DJSON
         {
             foreach (var pair in dic)
             {
-                var inst = convertDeserialize(valueType, value, pair.Value as Dictionary<object, object>);
+                var inst = convertDeserialize(valueType, pair.Value as Dictionary<object, object>);
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, inst });
             }
         }
@@ -132,7 +132,7 @@ public partial class DJSON
             var fieldType = f.FieldType;
             if (isSupportUnitySpecialType(fieldType))
             {
-                var ret = convertDeserialize(fieldType, value, o as Dictionary<object, object>);
+                var ret = convertDeserialize(fieldType, o as Dictionary<object, object>);
                 f.SetValue(value,ret);
             }
             else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
@@ -194,7 +194,7 @@ public partial class DJSON
     /// <typeparam name="T">タイプ</typeparam>
     /// <param name="jsonString">JSON文字列</param>
     /// <returns>T型の値</returns>
-    public static T Deserialize<T>(string jsonString) where T : class
+    public static T Deserialize<T>(string jsonString) 
     {
         var o = Parse(jsonString);
         var type = typeof(T);
@@ -232,6 +232,10 @@ public partial class DJSON
                 }
             }
             return value;
+        }else if (isSupportUnitySpecialType(type))
+        {
+            var ret = convertDeserialize(type, o as Dictionary<object, object>);
+            return (T)ret;
         }
         else
         {
