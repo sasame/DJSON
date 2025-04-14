@@ -230,6 +230,14 @@ public partial class DJSON
         {
             return ToJson(serializeList(type,value), omitNullDictionaryValues);
         }
+        else if (isSupportValueType(type))
+        {
+            return ToJson(value);
+        }
+        else if (isSupportValueType(value.GetType()))
+        {
+            return ToJson(value);
+        }
         else
         {
             // objectタイプ

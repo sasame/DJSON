@@ -113,6 +113,7 @@ public partial class DJSON
         public float inWeight;
         public float outWeight;
         public WeightedMode weightedMode;
+        public int tangentMode;
 
         public subKeyframe(Keyframe k)
         {
@@ -123,10 +124,13 @@ public partial class DJSON
             inWeight = k.inWeight;
             outWeight = k.outWeight;
             weightedMode = k.weightedMode;
+            tangentMode = k.tangentMode;
         }
         public Keyframe ToKeyframe()
         {
-            return new Keyframe(time, value, inTangent, outTangent, inWeight, outWeight);
+            var key = new Keyframe(time, value, inTangent, outTangent);
+            key.tangentMode = tangentMode;
+            return key;
         }
     }
     class subAnimationCurve
@@ -282,8 +286,12 @@ public partial class DJSON
             },
             (o) => {
                 var v = (subAnimationCurve)o;
-                var vkeys = new Keyframe[v.keys.Length];
-                for (int i = 0; i < v.keys.Length; ++i) vkeys[i] = v.keys[i].ToKeyframe();
+                Keyframe[] vkeys = null;
+                if (v.keys != null)
+                {
+                    vkeys = new Keyframe[v.keys.Length];
+                    for (int i = 0; i < v.keys.Length; ++i) vkeys[i] = v.keys[i].ToKeyframe();
+                }
                 return new AnimationCurve()
                 {
                     keys = vkeys,
