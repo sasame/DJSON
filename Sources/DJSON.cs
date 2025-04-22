@@ -16,6 +16,13 @@ public partial class DJSON
         return t.IsValueType && (!t.IsPrimitive) && (!t.IsEnum);
     }
 
+    /// <summary>
+    /// パースしてobjectで受け取る
+    /// 配列の場合は、List<object>が返る
+    /// 連想配列の場合は、Dictionary<object,object>が返る
+    /// </summary>
+    /// <param name="jsonString"></param>
+    /// <returns></returns>
     public static object Parse(string jsonString)
     {
         try
@@ -316,6 +323,13 @@ public partial class DJSON
             _convertTable['\t'] = "\\t";
         }
     }
+
+    /// <summary>
+    /// json文字列に変換する
+    /// </summary>
+    /// <param name="o">オブジェクト</param>
+    /// <param name="omitNullDictionaryValues">連想配列内の値がnullの場合は、その要素を書き出さない</param>
+    /// <returns>json文字列</returns>
     public static string ToJson(object o, bool omitNullDictionaryValues=true)
     {
         MakeConvertTable();
