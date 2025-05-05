@@ -198,7 +198,10 @@ public partial class DJSON
     {
         var o = Parse(jsonString);
         var type = typeof(T);
-        if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
+        if (o == null)
+        {
+            return (T)o;
+        }else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
         {
             var list = o as List<object>;
             var value = (T)Activator.CreateInstance(type);

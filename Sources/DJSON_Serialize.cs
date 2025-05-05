@@ -221,7 +221,10 @@ public partial class DJSON
     {
         Type type = typeof(T);
 
-        if (type.IsArray)
+        if (value == null)
+        {
+            return "null";
+        }else if (type.IsArray)
         {
             var result = serializeArray(value);
             return ToJson(result, omitNullDictionaryValues);
