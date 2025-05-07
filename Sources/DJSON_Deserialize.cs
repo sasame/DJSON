@@ -201,7 +201,7 @@ public partial class DJSON
         if (o == null)
         {
             return (T)o;
-        }else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
+        } else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) && (o is List<object>))
         {
             var list = o as List<object>;
             var value = (T)Activator.CreateInstance(type);
@@ -235,7 +235,13 @@ public partial class DJSON
                 }
             }
             return value;
-        }else if (isSupportUnitySpecialType(type))
+        }else if (type.IsEnum)
+        {
+            var str = o as string;
+            object e = Enum.Parse(type, str);
+            return (T)e;
+        }
+        else if (isSupportUnitySpecialType(type))
         {
             var ret = convertDeserialize(type, o as Dictionary<object, object>);
             return (T)ret;

@@ -229,6 +229,10 @@ public partial class DJSON
             var result = serializeArray(value);
             return ToJson(result, omitNullDictionaryValues);
         }
+        else if (type.IsEnum)
+        {
+            return value.ToString();
+        }
         else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
         {
             return ToJson(serializeList(type,value), omitNullDictionaryValues);
