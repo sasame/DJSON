@@ -69,7 +69,7 @@ public partial class DJSON
         Type keyType = type.GetGenericArguments()[0];
         Type valueType = type.GetGenericArguments()[1];
 //        if (keyType == typeof(string))
-        if (isSupportValueType(keyType))
+        if (isSupportValueType(keyType) || (keyType == typeof(System.Object)))
         {
             var items = type.GetProperty("Keys", BindingFlags.Instance | BindingFlags.Public).GetValue(value) as IEnumerable;
             var values = type.GetProperty("Values", BindingFlags.Instance | BindingFlags.Public).GetValue(value) as ICollection;
@@ -77,22 +77,35 @@ public partial class DJSON
             int indexKey = 0;
             foreach (var v in values)
             {
-                var key = keys[indexKey];// as string;
-                if (isSupportValueType(valueType))
+                var key = keys[indexKey];
+                if (v == null)
                 {
                     dic[key] = v;
                 }
-                else if (valueType.IsClass)
-                {
-                    dic[key] = serializeObject(valueType, v);
-                }
-                else if (isStruct(valueType))
-                {
-                    dic[key] = serializeObject(valueType, v);
-                }
                 else
                 {
-                    UnityEngine.Debug.Log("ignore type:" + valueType);
+                    Type thisValueType = valueType;
+                    if (valueType == typeof(System.Object))
+                    {
+                        thisValueType = v.GetType();
+                    }
+
+                    if (isSupportValueType(thisValueType))
+                    {
+                        dic[key] = v;
+                    }
+                    else if (thisValueType.IsClass)
+                    {
+                        dic[key] = serializeObject(thisValueType, v);
+                    }
+                    else if (isStruct(thisValueType))
+                    {
+                        dic[key] = serializeObject(thisValueType, v);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.Log("ignore type:" + thisValueType);
+                    }
                 }
                 ++indexKey;
             }
