@@ -1,7 +1,7 @@
 # 概要
 Unity向けのJSONシリアライザー＆デシリアライザーです。<BR>
 かゆいところに手が届くことを目指して作りました。<BR>
-Dictionaryに対応してます！<BR>
+Dictionary,List,enumに対応してます！<BR>
 Unityの一般的な型に対応してます！<BR>
 （Vector2,Vector3,Quaternion,Matrix4x4,Vector2Int,Vector3Int,Bounds,Plane,Ray,Ray2D,Rect,RectInt,Gradient,AnimationCurveなど。他に対応が必要であればリクエストしてください）<BR>
 自作class,structなどの場合は、publicあるいは[SerializeField]部分を保存、復元します。<BR>
