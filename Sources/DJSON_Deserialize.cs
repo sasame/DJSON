@@ -61,6 +61,35 @@ public partial class DJSON
     {
         var keyType = fieldType.GetGenericArguments()[0];
         var valueType = fieldType.GetGenericArguments()[1];
+        // objectタイプの場合
+        if (valueType == typeof(object))
+        {
+            foreach (var pair in dic)
+            {
+                if (pair.Value == null) continue;
+                var t = pair.Value.GetType();
+                if (isSupportValueType(t))
+                {
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
+                }
+                else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (pair.Value is List<object>))
+                {
+                    var listInst = Activator.CreateInstance(fieldType);
+                    var typeItem = fieldType.GetGenericArguments()[0];
+                    deserializeList(fieldType, typeItem, listInst, pair.Value as List<object>);
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, listInst });
+                }
+                else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (pair.Value is Dictionary<object, object>))
+                {
+                    var dicInst = Activator.CreateInstance(fieldType);
+                    deserializeDictionary(fieldType, dicInst, pair.Value as Dictionary<object, object>);
+                    fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, dicInst });
+                }
+            }
+            return;
+        }
+
+        //
         if (isSupportUnitySpecialType(valueType))
         {
             foreach (var pair in dic)
