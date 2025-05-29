@@ -25,27 +25,39 @@ public partial class DJSON
             if (item == null)
             {
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { null });
+                continue;
+            }
+
+            var itemType = type;
+            if (type == typeof(object))
+            {
+                itemType = value.GetType();
+            }
+
+            if (item == null)
+            {
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { null });
             }
             else if (type == typeof(string))
             {
                 var inst = item as string;
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
             }
-            else if (isSupportValueType(type))
+            else if (isSupportValueType(itemType))
             {
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ChangeType(item,type) });
             }
-            else if (isSupportUnitySpecialType(type))
+            else if (isSupportUnitySpecialType(itemType))
             {
-                var inst = convertDeserialize(type, item as Dictionary<object, object>);
+                var inst = convertDeserialize(itemType, item as Dictionary<object, object>);
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
             }
             else
             {
-                var inst = Activator.CreateInstance(type);
+                var inst = Activator.CreateInstance(itemType);
                 if (item is Dictionary<object, object>)
                 {
-                    deserializeObject(type, ref inst, item as Dictionary<object, object>);
+                    deserializeObject(itemType, ref inst, item as Dictionary<object, object>);
                 }
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { inst });
             }

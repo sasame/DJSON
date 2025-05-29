@@ -94,6 +94,10 @@ public partial class DJSON
                     {
                         dic[key] = v;
                     }
+                    else if (thisValueType.IsGenericType && thisValueType.GetGenericTypeDefinition() == typeof(List<>))
+                    {
+                        dic[key] = serializeList(thisValueType, v);
+                    }
                     else if (thisValueType.IsClass)
                     {
                         dic[key] = serializeObject(thisValueType, v);
@@ -120,21 +124,32 @@ public partial class DJSON
         var fieldList = fieldValue as IList;
         foreach (var item in fieldList)
         {
-            if (item.GetType() == typeof(string))
+            if (item == null)
+            {
+                list.Add(null);
+                continue;
+            }
+            var itemType = item.GetType();
+
+            if (itemType == typeof(string))
             {
                 list.Add(item);
             }
-            else if (isSupportValueType(item.GetType()))
+            else if (isSupportValueType(itemType))
             {
                 list.Add(item);
             }
-            else if (isStruct(fieldType))
+            else if (itemType.IsGenericType && itemType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
-                list.Add(serializeObject(fieldType, fieldValue));
+                list.Add(serializeDictionary(itemType, item));
             }
-            else if (item.GetType().IsClass)
+            else if (isStruct(itemType))
             {
-                list.Add(serializeObject(item.GetType(), item));
+                list.Add(serializeObject(itemType, item));
+            }
+            else if (itemType.IsClass)
+            {
+                list.Add(serializeObject(itemType, item));
             }
         }
         return list;
