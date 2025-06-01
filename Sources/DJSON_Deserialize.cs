@@ -31,7 +31,7 @@ public partial class DJSON
             var itemType = type;
             if (type == typeof(object))
             {
-                itemType = value.GetType();
+                itemType = item.GetType();
             }
 
             if (item == null)
@@ -46,6 +46,19 @@ public partial class DJSON
             else if (isSupportValueType(itemType))
             {
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { Convert.ChangeType(item,type) });
+            }
+            else if ((itemType.IsGenericType && itemType.GetGenericTypeDefinition() == typeof(List<>)) && (item is List<object>))
+            {
+                var listInst = Activator.CreateInstance(itemType);
+                var typeItem = itemType.GetGenericArguments()[0];
+                deserializeList(itemType, typeItem, listInst, item as List<object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { listInst });
+            }
+            else if ((itemType.IsGenericType && itemType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (item is Dictionary<object, object>))
+            {
+                var dicInst = Activator.CreateInstance(itemType);
+                deserializeDictionary(itemType, dicInst, item as Dictionary<object, object>);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { dicInst });
             }
             else if (isSupportUnitySpecialType(itemType))
             {
@@ -84,11 +97,11 @@ public partial class DJSON
                 {
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, pair.Value });
                 }
-                else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>)) && (pair.Value is List<object>))
+                else if ((t.IsGenericType && t.GetGenericTypeDefinition() == typeof(List<>)) && (pair.Value is List<object>))
                 {
-                    var listInst = Activator.CreateInstance(fieldType);
-                    var typeItem = fieldType.GetGenericArguments()[0];
-                    deserializeList(fieldType, typeItem, listInst, pair.Value as List<object>);
+                    var listInst = Activator.CreateInstance(t);
+                    var typeItem = valueType;
+                    deserializeList(t, typeItem, listInst, pair.Value as List<object>);
                     fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { pair.Key, listInst });
                 }
                 else if ((fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (pair.Value is Dictionary<object, object>))
