@@ -269,9 +269,18 @@ public partial class DJSON
         {
             return ToJson(value);
         }
-        else if (isSupportValueType(value.GetType()))
+        else if (value != null)
         {
-            return ToJson(value);
+            if (isSupportValueType(value.GetType()))
+            {
+                return ToJson(value);
+            }
+            else
+            {
+                // objectタイプ valueのtype利用
+                var result = serializeObject(value.GetType(),value);
+                return ToJson(result, omitNullDictionaryValues);
+            }
         }
         else
         {

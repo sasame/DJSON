@@ -309,4 +309,17 @@ public partial class DJSON
             return value;
         }
     }
+
+
+    public static T TryDeserialize<T>(string jsonString)
+    {
+        try
+        {
+            return Deserialize<T>(jsonString);
+        }catch(Exception ex)
+        {
+            Debug.LogWarning(ex.Message);
+            return default(T);
+        }
+    }
 }
