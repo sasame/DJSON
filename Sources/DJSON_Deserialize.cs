@@ -259,7 +259,8 @@ public partial class DJSON
         {
             var list = o as List<object>;
             var value = (T)Activator.CreateInstance(type);
-            deserializeList(type, type, value, list);
+            var typeItem = type.GetGenericArguments()[0];
+            deserializeList(type, typeItem, value, list);
             return value;
         }
         else if ((type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) && (o is Dictionary<object, object>))
