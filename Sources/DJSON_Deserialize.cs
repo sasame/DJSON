@@ -139,6 +139,17 @@ public partial class DJSON
                 fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, pair.Value });
             }
         }
+        else if ((valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(List<>)))
+        {
+            foreach (var pair in dic)
+            {
+                var inst = Activator.CreateInstance(valueType);
+                var typeItem = valueType.GetGenericArguments()[0];
+                deserializeList(valueType, typeItem, inst, pair.Value as List<object>);
+                var key = Convert.ChangeType(pair.Key, keyType);
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, inst });
+            }
+        }
         else if (valueType.IsClass)
         {
             foreach (var pair in dic)
@@ -164,7 +175,7 @@ public partial class DJSON
             foreach (var pair in dic)
             {
                 var key = Convert.ChangeType(pair.Key, keyType);
-                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, Convert.ChangeType(pair.Value,valueType) });
+                fieldType.InvokeMember("Add", System.Reflection.BindingFlags.InvokeMethod, null, value, new object[] { key, Convert.ChangeType(pair.Value, valueType) });
             }
         }
 
